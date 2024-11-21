@@ -2,37 +2,46 @@
 {% load static %} 
 
 {% block content %}
-<div class="mapa-wrapper" style="height: 500px;">
-    <h4>{{ PLANO.nombre }}</h4>
-    <div class="mapa-control-wrapper">
-        
-      
-        <label>UBICACION</label>
-        <select id="objectSelect">
-            <option value="">---------</option>
-            {% for obj in MARCADORES %}
-            <option value="{{ obj.id }}">{{ obj.nombre }}</option>
-            {% endfor %}
-        </select>
-        
-
-        <button id="addMarkerBtn">AGREGAR MARCADOR </button>
-    </div>
-    <div class="alert-message" id="alertMessage"></div>
-    <div class="mapa-control-wrapper">
-        <button class="save-btn" onclick="guardarUbicaciones()">GUARDAR</button>
+<div class="mapa-wrapper" >
+    
+    <div>
+        <h3>INFORMACION</h3>
     </div>
     
-    <div  id="mapa-image" style="height: 100%; width: 100%;"></div>
+    <div >
+        <h4>{{ PLANO.nombre }}</h4>
+        <div class="mapa-control-wrapper">
+            
+            <label>UBICACION</label>
+            <select id="objectSelect">
+                <option value="">---------</option>
+                {% for obj in MARCADORES %}
+                <option value="{{ obj.id }}">{{ obj.nombre }}</option>
+                {% endfor %}
+            </select>
+            
+            <button id="addMarkerBtn">AGREGAR MARCADOR</button>
+        </div>
+        <div class="alert-message" id="alertMessage"></div>
+        <div class="mapa-control-wrapper">
+            <button class="save-btn" onclick="guardarUbicaciones()">GUARDAR</button>
+        </div>
+        
+        <div  id="mapa-image" style="height: 500px; width: 100%;"></div>
+
+    </div>
+
+    
 </div>
+
+
+
+
 {% endblock %}
-
-
 
 {% block custom_scripts %}
 <script src="{% static 'LIB/leaflet/leaflet.js' %}"></script>
 <script>
-
     // MAPA
     const map = L.map('mapa-image', {
         crs: L.CRS.Simple,  
@@ -46,24 +55,23 @@
     L.imageOverlay(imageUrl, imageBounds).addTo(map);
     map.setMaxBounds(imageBounds);
 
-
     const marcadores = JSON.parse('{{ PUNTOS|safe|escapejs }}');
+    const markers = {}; // Almacenará los marcadores en el mapa
+    let addingMarker = false;
 
+    // Cargar los marcadores existentes
     marcadores.forEach(marcador => {
-        if (marcador.latitud && marcador.longitud) { 
-            L.marker([marcador.latitud, marcador.longitud])
-                .addTo(map)
-                .bindPopup(`<b>${marcador.nombre}</b>`);
+        if (marcador.latitud && marcador.longitud) {
+            const leafletMarker = L.marker([marcador.latitud, marcador.longitud]).addTo(map)
+                .bindPopup(`<b>${marcador.nombre}</b>`)
+                .on('click', function () {
+                    llamarFuncionConId(marcador.id);
+                });
+
+            markers[marcador.id] = leafletMarker;
         }
     });
-
-    
-    
-
-    // VARIABLES
-    let addingMarker = false;
-    const markers = {};
-
+  
     // SELECCIONAR
     document.getElementById('addMarkerBtn').addEventListener('click', function() {
         const selectedObject = document.getElementById('objectSelect').value;
@@ -82,7 +90,7 @@
         }
     });
 
-
+    // Cuando se cambia el select de objetos
     const objectSelect = document.getElementById('objectSelect');
     objectSelect.addEventListener('change', function() {
         addingMarker = false;
@@ -90,31 +98,38 @@
         document.getElementById('alertMessage').textContent = ''; 
     });
 
-
-    // CREAR MARCADORES
-
-   map.on('click', function (e) {
+    // CREAR MARCADORES (al hacer clic en el mapa)
+    map.on('click', function (e) {
         if (addingMarker) {
             const selectedObject = document.getElementById('objectSelect').value;
 
-            if (markers[selectedObject]) {
-                map.removeLayer(markers[selectedObject]);
+            if (selectedObject) {
+                // Si el marcador ya existe, se elimina antes de agregar el nuevo
+                if (markers[selectedObject]) {
+                    map.removeLayer(markers[selectedObject]);
+                }
+
+                const lat = e.latlng.lat;
+                const lon = e.latlng.lng;
+                const marker = L.marker([lat, lon]).addTo(map)
+                    .bindPopup(`<b>${document.getElementById('objectSelect').options[document.getElementById('objectSelect').selectedIndex].text}</b>`);
+
+                markers[selectedObject] = marker;
+
+                // Agregar el evento de clic al nuevo marcador
+                marker.on('click', function () {
+                    llamarFuncionConId(selectedObject);
+                });
+
+                addingMarker = false;
+                addMarkerBtn.textContent = 'AGREGAR MARCADOR';
+
+                console.log(`Guardando marcador para ID ${selectedObject}: (${lat}, ${lon})`);
             }
-
-            const lat = e.latlng.lat;
-            const lon = e.latlng.lng;
-            const marker = L.marker([lat, lon]).addTo(map)
-                .bindPopup(`Marcador agregado en ${lat.toFixed(4)}, ${lon.toFixed(4)}`);
-            markers[selectedObject] = marker;
-
-            addingMarker = false;
-            addMarkerBtn.textContent = 'AGREGAR MARCADOR';
-
-            console.log(`Guardando marcador para ID ${selectedObject}: (${lat}, ${lon})`);
         }
     });
 
-
+    // Función para guardar las ubicaciones
     function guardarUbicaciones() {
         const ubicaciones = Object.entries(markers).map(([id, marker]) => ({
             id,
@@ -141,5 +156,11 @@
             });
     }
 
+
+
+    function llamarFuncionConId(id) {
+        console.log('Se ha hecho clic en el marcador con ID:', id);
+    
+    }
 </script>
 {% endblock %}
