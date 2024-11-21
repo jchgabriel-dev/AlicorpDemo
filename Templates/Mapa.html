@@ -1,0 +1,145 @@
+{% extends 'Base.html' %}
+{% load static %} 
+
+{% block content %}
+<div class="mapa-wrapper" style="height: 500px;">
+    <h4>{{ PLANO.nombre }}</h4>
+    <div class="mapa-control-wrapper">
+        
+      
+        <label>UBICACION</label>
+        <select id="objectSelect">
+            <option value="">---------</option>
+            {% for obj in MARCADORES %}
+            <option value="{{ obj.id }}">{{ obj.nombre }}</option>
+            {% endfor %}
+        </select>
+        
+
+        <button id="addMarkerBtn">AGREGAR MARCADOR </button>
+    </div>
+    <div class="alert-message" id="alertMessage"></div>
+    <div class="mapa-control-wrapper">
+        <button class="save-btn" onclick="guardarUbicaciones()">GUARDAR</button>
+    </div>
+    
+    <div  id="mapa-image" style="height: 100%; width: 100%;"></div>
+</div>
+{% endblock %}
+
+
+
+{% block custom_scripts %}
+<script src="{% static 'LIB/leaflet/leaflet.js' %}"></script>
+<script>
+
+    // MAPA
+    const map = L.map('mapa-image', {
+        crs: L.CRS.Simple,  
+        maxZoom: 1,         
+        minZoom: 0         
+    }).setView([0, 0], 0);  
+
+    const imageUrl = '{{ PLANO.imagen.url }}';
+    const imageBounds = [[0, 0], [500, 500]]; 
+
+    L.imageOverlay(imageUrl, imageBounds).addTo(map);
+    map.setMaxBounds(imageBounds);
+
+
+    const marcadores = JSON.parse('{{ PUNTOS|safe|escapejs }}');
+
+    marcadores.forEach(marcador => {
+        if (marcador.latitud && marcador.longitud) { 
+            L.marker([marcador.latitud, marcador.longitud])
+                .addTo(map)
+                .bindPopup(`<b>${marcador.nombre}</b>`);
+        }
+    });
+
+    
+    
+
+    // VARIABLES
+    let addingMarker = false;
+    const markers = {};
+
+    // SELECCIONAR
+    document.getElementById('addMarkerBtn').addEventListener('click', function() {
+        const selectedObject = document.getElementById('objectSelect').value;
+        document.getElementById('alertMessage').textContent = '';  
+        
+        if (!selectedObject) {
+            document.getElementById('alertMessage').textContent = 'Por favor, seleccione una ubicacion';  
+            return;
+        }
+        
+        addingMarker = !addingMarker;  
+        if (addingMarker) {
+            this.textContent = 'Haz clic en el mapa para agregar el marcador';  
+        } else {
+            this.textContent = 'AGREGAR MARCADOR';  
+        }
+    });
+
+
+    const objectSelect = document.getElementById('objectSelect');
+    objectSelect.addEventListener('change', function() {
+        addingMarker = false;
+        addMarkerBtn.textContent = 'AGREGAR MARCADOR'; 
+        document.getElementById('alertMessage').textContent = ''; 
+    });
+
+
+    // CREAR MARCADORES
+
+   map.on('click', function (e) {
+        if (addingMarker) {
+            const selectedObject = document.getElementById('objectSelect').value;
+
+            if (markers[selectedObject]) {
+                map.removeLayer(markers[selectedObject]);
+            }
+
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+            const marker = L.marker([lat, lon]).addTo(map)
+                .bindPopup(`Marcador agregado en ${lat.toFixed(4)}, ${lon.toFixed(4)}`);
+            markers[selectedObject] = marker;
+
+            addingMarker = false;
+            addMarkerBtn.textContent = 'AGREGAR MARCADOR';
+
+            console.log(`Guardando marcador para ID ${selectedObject}: (${lat}, ${lon})`);
+        }
+    });
+
+
+    function guardarUbicaciones() {
+        const ubicaciones = Object.entries(markers).map(([id, marker]) => ({
+            id,
+            lat: marker.getLatLng().lat,
+            lon: marker.getLatLng().lng
+        }));
+
+        console.log("Enviando las siguientes ubicaciones al servidor:", ubicaciones);
+
+        fetch('{% url "guardar_ubicaciones" %}', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': '{{ csrf_token }}',
+            },
+            body: JSON.stringify(ubicaciones),
+        })
+            .then(response => response.json())
+            .then(data => {
+                alert('Ubicaciones guardadas con éxito');
+            })
+            .catch(error => {
+                console.error('Error al guardar las ubicaciones:', error);
+            });
+    }
+
+</script>
+{% endblock %}

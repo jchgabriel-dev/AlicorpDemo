@@ -1,0 +1,143 @@
+* {
+    -webkit-box-sizing: border-box;
+    box-sizing: border-box; 
+    margin: 0;
+    padding: 0;  
+}
+
+table {
+    border-collapse: collapse;    
+}
+
+button {
+    cursor: pointer;
+    font-family: 'Nunito', sans-serif;
+}
+
+h4 {
+    font-family: 'Nunito', sans-serif;
+}
+  
+
+body {
+    padding: 0;
+    margin: 0;
+    height: 100vh;
+    width: 100vw;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overscroll-behavior: contain;
+    font-family: 'Nunito', sans-serif;
+    letter-spacing: 0px;
+    word-spacing: 0px;
+
+}
+
+input, select, textarea {
+    font-family: 'Nunito', sans-serif;
+    outline: none;
+}
+
+code {
+    font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',monospace;
+}
+
+.main-content {
+    height: 100vh;
+    overflow: auto;
+    background-color: #c9cdd9;
+}
+
+
+.navbar-space {
+    top: 0;
+    left: 0;
+    height: 67px;
+    width: 100%;
+    background-color: #FF0826;
+    box-shadow: 0px 5px 10px rgba(0, 0, 0, 0.1);
+    display: flex;
+    position: sticky;  
+    align-items: center;
+    justify-content: space-between;
+    z-index: 100;
+    transition: 400ms;     
+}
+
+.navbar-space .navbar-logo {
+    font-size: 20px;
+    color: #fff;
+    font-weight: bold;
+    height: 70px;
+    margin: 1rem;
+}
+
+.navbar-space .navbar-logo img {
+    max-width: 100%;  
+    max-height: 100%; 
+    height: auto;     
+    width: auto;      
+}
+
+
+
+.mapa-wrapper {
+    background-color: #ffffff;
+    margin: 1rem;
+}
+
+.mapa-wrapper h4 {
+    text-align: center;
+    font-size: 20px;
+    background-color: #000;
+    padding: 1rem;
+    color: #fff;
+}
+
+.mapa-control-wrapper {
+    background-color: #ffffff;
+    padding: 1rem;
+    display: flex;   
+    gap: 1rem;
+    align-items: center;
+    justify-content: center;
+}
+
+.mapa-control-wrapper  select {
+    padding: 0.6rem ;
+    width: 200px;
+}
+
+.mapa-control-wrapper button {
+    background-color: #FF0826;
+    padding: 0.7rem 1rem;
+    font-size: 15px;
+    color: #fff;
+    border: none;
+    border-radius: 10px;
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    transition-duration: 200ms;
+}
+
+.mapa-control-wrapper button:hover {
+    background-color: #be061b;
+}
+
+.mapa-control-wrapper i {
+    font-size: 20px;
+}
+
+.mapa-control-wrapper label {
+    font-weight: bold;
+}
+
+.alert-message {
+    text-align: center;
+    border-radius: 6px;
+    padding: 5px 1rem ;
+
+}

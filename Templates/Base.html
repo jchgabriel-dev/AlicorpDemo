@@ -1,0 +1,40 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8">    
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <title>Alicorp</title>
+    <link rel="shortcut icon" href="{%  static 'IMAGES/favicon.ico' %}" />
+    <link rel="stylesheet" href="{% static 'CSS/CSSForm.css' %}?v={{ STATIC_VERSION }}">
+    <link rel="stylesheet" href="{% static 'LIB/leaflet/leaflet.css' %}">
+    <link rel="stylesheet" href="{% static 'ICONS/css/materialdesignicons.min.css' %}">
+
+  </head>
+
+  <body> 
+      <div class="main-content">
+
+        <nav class="navbar-space">
+            <div class="navbar-logo"> <img src="{% static 'IMAGES/Logo.png' %}" alt="Logo"> </div>
+
+        </nav>
+        
+          {% block content %}
+          {% endblock %}      
+      
+      
+      </div>
+
+      <div class="modal-space-background"></div>
+
+    </div>
+
+
+    {% block custom_scripts %}
+    {% endblock %}
+
+    
+  </body>
+</html>
