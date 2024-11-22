@@ -4,16 +4,14 @@
 {% block content %}
 <div class="mapa-wrapper" >
     
-    <div>
+    <div class="info-piso">
         <h3>INFORMACION</h3>
-        <label>Nombre</label>
-        <span></span>
-        <L
-        <p></p>
+        <a class="modal-btn secondary">CREAR CAMARA</a>
+
     </div>
 
     <div >
-        <h4>{{ PLANO.nombre }}</h4>
+        <h4>{{ piso.nombre }}</h4>
         <div class="mapa-control-wrapper">
             
             <label>UBICACION</label>
@@ -27,6 +25,8 @@
             <button id="addMarkerBtn">AGREGAR MARCADOR</button>
         </div>
         <div class="alert-message" id="alertMessage"></div>
+
+        
         <div class="mapa-control-wrapper">
             <button class="save-btn" onclick="guardarUbicaciones()">GUARDAR</button>
         </div>
@@ -38,31 +38,37 @@
     
 </div>
 
-
-
-
 {% endblock %}
 
 {% block custom_scripts %}
 <script src="{% static 'LIB/leaflet/leaflet.js' %}"></script>
 <script>
-    // MAPA
-    const map = L.map('mapa-image', {
-        crs: L.CRS.Simple,  
-        maxZoom: 1,         
-        minZoom: 0         
-    }).setView([0, 0], 0);  
 
-    const imageUrl = '{{ PLANO.imagen.url }}';
-    const imageBounds = [[0, 0], [500, 500]]; 
+   
+const imageUrl = '{{ piso.imagen.url }}'; // URL de la imagen
+const imageWidth = {{ image_width }};     // Ancho real de la imagen
+const imageHeight = {{ image_height }};   // Altura real de la imagen
 
-    L.imageOverlay(imageUrl, imageBounds).addTo(map);
-    map.setMaxBounds(imageBounds);
+const imageBounds = [[0, 0], [imageHeight, imageWidth]];
+
+const map = L.map('mapa-image', {
+    crs: L.CRS.Simple,
+    maxZoom: 5,       // Permitir zoom detallado
+    minZoom: -4,      // Zoom inicial reducido para que se vea completa
+    zoomSnap: 0.5,    // Permitir niveles de zoom intermedios
+}).setView([0, 0], 0);
+
+L.imageOverlay(imageUrl, imageBounds).addTo(map);
+
+map.fitBounds(imageBounds);
+
+    
 
     const marcadores = JSON.parse('{{ PUNTOS|safe|escapejs }}');
-    const markers = {}; // Almacenará los marcadores en el mapa
+    const markers = {}; 
     let addingMarker = false;
 
+    
     // Cargar los marcadores existentes
     marcadores.forEach(marcador => {
         if (marcador.latitud && marcador.longitud) {
@@ -143,7 +149,7 @@
 
         console.log("Enviando las siguientes ubicaciones al servidor:", ubicaciones);
 
-        fetch('{% url "guardar_ubicaciones" %}', {
+        fetch('', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',

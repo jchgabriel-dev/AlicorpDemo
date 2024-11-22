@@ -79,6 +79,271 @@ code {
     width: auto;      
 }
 
+/* MODALES */
+
+.modal-space-background  {
+    position: fixed;
+    display: flex;
+    top: 0;
+    left: 0;
+    height: 100vh;
+    width: 100vw;
+    background-color: #0000007d;
+    align-items: center;
+    justify-content: center;
+    opacity: 0;
+    transition: opacity 300ms ease-in-out, visibility 0s 300ms;
+    z-index: 100;
+    visibility: hidden;
+}
+
+.modal-space-background.active {
+    opacity: 1;
+    visibility: visible;
+    transition: opacity 300ms ease-in-out, visibility 0s;
+}
+
+
+.modal-content {
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    visibility: hidden;
+    opacity: 0;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%) scale(0.8); 
+    z-index: 200;
+    max-width: 90%;
+    max-height: 95%;
+    background-color: #fff;
+    transition: opacity 300ms ease-in-out, visibility 0s 300ms, transform 300ms ease-in-out;
+    border-radius: 6px;
+    overflow: auto;
+}
+
+.modal-content.active {
+    opacity: 1;
+    visibility: visible;
+    transform: translate(-50%, -50%) scale(1); 
+    transition: opacity 300ms ease-in-out , visibility 0s, transform 300ms ease-in-out; 
+}
+
+.modal-btn {
+    font-size: 12px;
+  color: #ffffff;
+  border: transparent;
+  border-radius: 1rem;
+  padding: 0.4rem;
+  font-weight: bold;
+  align-items: center;
+  justify-content: center;
+  transition: 200ms;
+  position: relative;
+  text-align: center;
+  text-decoration: none;
+  display: inline-block;
+
+}
+
+.modal-cross-btn {
+    position: absolute;
+    top: 12px;
+    right: 15px;
+    background-color: transparent;
+    color: #ffffff;
+    font-size: 20px;
+    font-weight: bold;
+    border: transparent;
+    transition-duration: 200ms;
+    cursor: pointer;
+}
+  
+.modal-cross-btn:hover {
+    color: #d1d1d1;
+}
+
+
+.modal-text-header {
+    display: flex;
+    width: 100%;
+    text-align: left;
+    color: #fff;
+    padding: 0.9rem;
+    background-color: #000A17 ;
+    justify-content: center;
+    align-items: center;
+    font-weight: bold;
+    font-size: 15px;
+}
+
+.modal-crear {
+    width: 500px;
+}
+
+
+.modal-crear input {
+    padding: 0.4rem;
+    font-size: 15px;
+    border: #777b88 1px solid;
+    border-radius: 0.2rem;  
+    white-space: normal;
+    flex: 1;
+    width: 100%;
+    margin: 4px 0;
+
+}
+
+.modal-crear textarea {
+    outline: none;
+    border-radius: 0.2rem; 
+    border: #777b88 1px solid;
+    white-space: normal;
+    margin-bottom: 1rem;
+    padding: 0.4rem;
+    font-size: 15px;
+    max-height: 150px;
+    min-height: 100px;
+    width: 100%;        
+    resize: vertical;    
+    box-sizing: border-box;
+    margin: 4px 0;
+
+}
+
+.modal-crear  label {
+    font-size: 14px;
+    display: block;
+}
+.modal-crear .modal-btn {
+    width: 120px;
+}
+
+.modal-crear  form{
+    padding: 0.5rem 1rem;
+}
+
+.modal-crear > div:nth-child(4) {
+    display: flex;
+    justify-content: center;
+    margin-bottom: .5rem;
+    gap: 4px;
+}
+
+.modal-btn.secondary {
+    background-color: #000A17;
+}
+
+.modal-btn.primary {
+    background-color: red;
+}
+
+.error-field {
+    background-color: #ff9f9f;
+}
+
+/* PESTAÑA DE PISOS */
+.wrapper-piso {
+    margin: 1rem 2rem;
+}
+
+.header-piso {
+    display: flex;
+    align-items: center;
+    gap: 3rem;
+}
+
+.header-piso h2 {
+    font-size: 20px;
+}
+
+
+.header-piso button {
+    background-color: red;
+    padding: 0.5rem 2rem;
+    color: #fff;
+    border-radius: 1rem;
+    font-weight: bold;
+    border: transparent;
+}
+
+
+.piso-card {
+    background: #ffffffa5;
+    color: #000000;
+    justify-content: center;  
+    border-radius: 0.6rem;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    width: 290px;
+    overflow: hidden;
+}
+
+.wrapper-piso-card {
+    width: 100%;
+    display: flex;
+    margin-top: 1rem;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.piso-card h3 {
+    font-size: 15px;
+    background-color: #000;
+    color: #fff;
+    padding: .8rem 1rem;
+}
+
+.piso-card p {
+    padding: .8rem 1rem;
+}
+.piso-card strong {
+    display: block;
+    margin-bottom: 4px;
+}
+
+.piso-card .card-image {
+    height: 200px;  
+    width: 100%;    
+    overflow: hidden;
+    padding: 10px;
+ 
+}
+
+.piso-card .card-image img {
+    width: 100%;          
+    height: 100%;         
+    object-fit: contain;    
+    object-position: center;
+}
+
+.piso-card a {
+    background-color: red;
+    cursor: pointer;
+    color: #fff;
+    padding: 0.5rem;
+    border-radius: 1rem;
+    font-weight: bold;
+    font-size: 13px;
+    width: 50%;
+    text-align: center;
+}
+
+.center-link {
+    height: 50px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+
+/* CAMARA */
+
+.crear-camara {
+    background-color: red;
+}
+
+/* CONTENEDOR DE MAPA */
 
 .mapa-wrapper {
     background-color: #ffffff;

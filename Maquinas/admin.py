@@ -1,6 +1,7 @@
 from django.contrib import admin
-from .models import Plano, Marcador
-# Register your models here.
+from .models import Piso, Camara, Informe
 
-admin.site.register(Plano)
-admin.site.register(Marcador)
+
+admin.site.register(Piso)
+admin.site.register(Camara)
+admin.site.register(Informe)

@@ -1,0 +1,202 @@
+{% extends 'Base.html' %}
+{% load static %} 
+
+{% block content %}
+<div class="wrapper-piso">
+    <div class="header-piso"> <h2>LISTADO DE PISOS</h2> <button onclick="showCreationModal()"> AGREGAR PISO</button></div>   
+    
+    <div  class="wrapper-piso-card"></div>
+
+    <div class="modal-content modal-crear" id="modal-crear">
+        <div class="modal-cross-btn">X</div>
+        <div class="modal-text-header" > AGREGAR PISO</div>
+
+        <form method="post" enctype="multipart/form-data">
+            {% csrf_token %}
+            <label>Nombre:</label>
+            <input type="text" id="piso-nombre" name="nombre">
+        
+            <label>Imagen:</label>
+            <input type="file" id="piso-imagen" name="imagen">
+        
+            <label>Descripción:</label>
+            <textarea id="piso-descripcion" name="descripcion"></textarea>
+        
+        </form>
+      
+        <div>
+            <button class="modal-btn primary" id="crear-piso-btn">CREAR </button>
+            <button class="modal-btn secondary" id="modal-crear-close">CANCELAR</button>
+
+        </div>
+    </div>
+
+
+</div>
+
+{% endblock %}
+
+{% block custom_scripts %}
+
+
+
+<script>
+
+// CARGAR CARTAS 
+async function obtenerPisos() {
+    try {
+        const response = await fetch('{% url "PisoListApi" %}');
+        if (response.ok) {
+            const pisos = await response.json();
+            generarCartas(pisos); 
+        } else {
+            console.error('Error al obtener los pisos:', response.status);
+        }
+    } catch (error) {
+        console.error('Error al hacer la solicitud:', error);
+    }
+}
+
+
+function generarCartas(pisos) {
+    
+    const contenedor = document.getElementsByClassName('wrapper-piso-card')[0];
+    contenedor.innerHTML = ''; 
+
+    pisos.forEach(piso => {
+        const card = document.createElement('div');
+        card.classList.add('piso-card');
+
+        card.innerHTML = `
+            <h3>${piso.nombre}</h3>
+            <p><strong>Descripción:</strong> ${piso.descripcion || 'No disponible'}</p>
+            <div class="card-image"><img src="${piso.imagen}" alt="Imagen de ${piso.nombre}" class="piso-image" /></div>
+            <div class="center-link"> <a  href="/pisos/${piso.id}/">CONTINUAR</a> </div>
+        `;
+
+        contenedor.appendChild(card);
+    });
+}
+
+document.addEventListener('DOMContentLoaded', obtenerPisos);
+
+
+// MOSTRAR MODAL
+
+document.addEventListener("DOMContentLoaded", function() {
+    const modalBackground = document.querySelector(".modal-space-background");
+    const modals = [
+        { modal: document.querySelector("#modal-crear"), closeBtn: ".modal-cross-btn, #modal-crear-close" },
+   
+    ];
+
+    function closeModal(modal) {
+        modal.classList.remove("active");
+        modalBackground.classList.remove("active");
+    }
+
+    modals.forEach(({ modal, closeBtn }) => {
+        const closeButtons = modal.querySelectorAll(closeBtn);
+        closeButtons.forEach(closeButton => {
+            closeButton.addEventListener("click", function() {
+                closeModal(modal);
+            });
+        });
+    });
+
+});
+
+function showModal(modalId) {
+    document.querySelector(".modal-space-background").classList.add("active");
+    document.querySelector(modalId).classList.add("active");
+}
+
+function showCreationModal() {
+    const nombreInput = document.getElementById("piso-nombre");
+    const descripcionInput = document.getElementById("piso-descripcion");
+    const imagenInput = document.getElementById("piso-imagen");
+
+    nombreInput.value = "";
+    descripcionInput.value = "";
+    imagenInput.value = "";
+    
+    showModal("#modal-crear");
+
+    nombreInput.classList.remove("error-field");
+    descripcionInput.classList.remove("error-field");
+    imagenInput.classList.remove("error-field");
+}
+
+function getCSRFToken() {
+    const cookies = document.cookie.split(';');
+    for (let i = 0; i < cookies.length; i++) {
+        const cookie = cookies[i].trim();
+        if (cookie.startsWith('csrftoken=')) {
+            return cookie.substring('csrftoken='.length);
+        }
+    }
+    return null;
+}
+
+document.addEventListener("DOMContentLoaded", function () {
+    const crearPisoBtn = document.getElementById("crear-piso-btn");
+
+    crearPisoBtn.addEventListener("click", async function () {
+        const nombre = document.getElementById("piso-nombre").value;
+        const descripcion = document.getElementById("piso-descripcion").value;
+        const imagenInput = document.getElementById("piso-imagen");
+        const imagen = imagenInput.files[0];
+
+        if (!nombre || !imagen) {
+
+            if (!nombre) {
+                document.getElementById("piso-nombre").classList.add("error-field");
+            }
+
+            if (!imagen) {
+                document.getElementById("piso-imagen").classList.add("error-field");
+
+            }
+
+
+            return;
+        }
+
+  
+        const formData = new FormData();
+        formData.append("nombre", nombre);
+        formData.append("descripcion", descripcion);
+        formData.append("imagen", imagen);
+        const csrfToken = getCSRFToken();
+        try {
+            const response = await fetch("{% url 'PisoListApi' %}", {
+                method: "POST",
+                headers: {
+                "X-CSRFToken": csrfToken,
+                },
+                body: formData,
+            });
+
+            if (response.ok) {
+                const modalBackground = document.querySelector(".modal-space-background");
+                const modalCrear = document.querySelector(".modal-crear");
+
+                modalBackground.classList.remove("active");
+                modalCrear.classList.remove("active");
+
+                obtenerPisos(); 
+            } else {
+                const errorData = await response.json();
+                console.error("Error al crear el piso:", errorData);
+                alert("Error al crear el piso. Verifica los datos.");
+            }
+        } catch (error) {
+            console.error("Error en la solicitud:", error);
+            alert("Ocurrió un error al intentar crear el piso.");
+        }
+    });
+});
+
+
+</script>
+{% endblock %}

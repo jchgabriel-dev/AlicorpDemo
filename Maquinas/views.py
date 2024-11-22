@@ -1,47 +1,30 @@
 from django.shortcuts import render
 
-from django.views.generic import TemplateView
-from .models import Plano, Marcador
+from django.views.generic import TemplateView, DetailView
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import json
+from . models import Piso
+from PIL import Image
 
 
-class MapaView(TemplateView):
-    template_name = 'Mapa.html'
+class PisoView(TemplateView):
+    template_name = "Piso.html"
+
+
+class PisoDetailView(DetailView):
+    model = Piso
+    template_name = 'mapa.html' 
+    context_object_name = 'piso'
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        plano = Plano.objects.first() 
-        objetos = Marcador.objects.all()
+        piso = self.object
         
-        context['PLANO'] = plano 
-        context['MARCADORES'] = objetos
-
-        marcadores = [
-            {
-                'id': obj.id,
-                'nombre': obj.nombre,
-                'latitud': obj.latitud,
-                'longitud': obj.longitud,
-            }
-            for obj in objetos
-        ]
-
-        context['PUNTOS'] = json.dumps(marcadores)
-
+        if piso.imagen:
+            with Image.open(piso.imagen.path) as img:
+                context['image_width'], context['image_height'] = img.size
+        else:
+            context['image_width'], context['image_height'] = 500, 500
 
         return context
-
-
-
-def guardar_ubicaciones(request):
-    if request.method == 'POST':
-        data = json.loads(request.body)
-        for item in data:
-            marcador = Marcador.objects.get(id=item['id'])
-            marcador.latitud = item['lat']
-            marcador.longitud = item['lon']
-            marcador.save() 
-        return JsonResponse({'status': 'success', 'message': 'Ubicaciones guardadas correctamente'})
-    return JsonResponse({'status': 'error', 'message': 'Método no permitido'}, status=405)
