@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="background-content">
+  <div class="header-content recetario"><i class="mdi mdi-receipt"></i><span>GESTION DE CAMARAS</span></div>      
+  
+  <div class="receipe-form-display">
+    
+    <form method="post" enctype="multipart/form-data" class="content-form receta"  id="informe-form">
+      <div>
+        {% csrf_token %}
+        {{ form.estado }}
+
+        <div class="detail-columns-1 detail-responsable"><label>Piso</label>{{ form.piso }} </div>
+        <div class="detail-columns-1"><label>Nombre</label>{{ form.nombre }} </div>
+
+        <div class="detail-columns-1"><label>Fecha</label>{{ form.fecha }} </div>
+
+        <div class="detail-columns-2">
+            <div><label>Codigo</label> {{ form.codigo }} </div>
+            <div><label>Ip</label>{{ form.ip }}  </div>
+        </div> 
+        <div class="detail-columns-1"><label>Descripcion</label>{{ form.descripcion }} </div>
+        <div class="detail-columns-1"><label>Observaciones</label>{{ form.observaciones }} </div>
+
+       
+        <div class="content-btn-container">
+          <button class="modal-btn secondary" id="btn-success" type="submit" >Guardar</button>
+          <a href="{{RETURN_URL}}"  class="modal-btn primary" >Cancelar</a>
+        </div> 
+      </div>
+     
+    </form>
+  </div>
+</div>
+
+
+<script>
+   document.getElementById('informe-form').addEventListener('submit', function(event) {
+    const nombreField = document.querySelector('[name="nombre"]');
+    const autorField = document.querySelector('[name="codigo"]');
+
+    let isValid = true;
+
+    if (!nombreField.value.trim()) {
+      isValid = false;
+      nombreField.classList.add('invalid-input'); 
+    } else {
+      nombreField.classList.remove('invalid-input');
+    }
+
+    if (!autorField.value.trim()) {
+      isValid = false;
+      autorField.classList.add('invalid-input'); 
+    } else {
+      autorField.classList.remove('invalid-input'); 
+    }
+
+    if (!isValid) {
+      event.preventDefault(); 
+    }
+  });
+</script>
+
+  
+
+{% endblock %}

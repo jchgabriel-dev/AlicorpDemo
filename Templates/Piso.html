@@ -71,30 +71,42 @@ function generarCartas(pisos) {
             <h3>${piso.nombre}</h3>
             <p><strong>Descripción:</strong> ${piso.descripcion || 'No disponible'}</p>
             <div class="card-image"><img src="${piso.imagen}" alt="Imagen de ${piso.nombre}" class="piso-image" /></div>
-            <div class="center-link"> <a  href="/pisos/${piso.id}/">CONTINUAR</a> </div>
+            <div class="center-link"> <a  href="/piso/${piso.id}/">CONTINUAR</a> </div>
         `;
 
         contenedor.appendChild(card);
     });
+
+    
 }
 
 document.addEventListener('DOMContentLoaded', obtenerPisos);
 
-
+ 
 // MOSTRAR MODAL
 
 document.addEventListener("DOMContentLoaded", function() {
     const modalBackground = document.querySelector(".modal-space-background");
     const modals = [
-        { modal: document.querySelector("#modal-crear"), closeBtn: ".modal-cross-btn, #modal-crear-close" },
-   
+        { modal: document.querySelector("#modal-crear"), closeBtn: ".modal-cross-btn, #modal-crear-close" },   
     ];
 
     function closeModal(modal) {
         modal.classList.remove("active");
         modalBackground.classList.remove("active");
     }
-
+      
+    document.addEventListener("click", function(event) {
+        modals.forEach(({ modal }) => {
+            if (
+                modal.classList.contains("active") && 
+                event.target.closest(".modal-space-background") && 
+                !event.target.closest("#" + modal.id)
+            ) {
+                closeModal(modal);
+            }
+        });
+    });
     modals.forEach(({ modal, closeBtn }) => {
         const closeButtons = modal.querySelectorAll(closeBtn);
         closeButtons.forEach(closeButton => {
@@ -103,7 +115,6 @@ document.addEventListener("DOMContentLoaded", function() {
             });
         });
     });
-
 });
 
 function showModal(modalId) {
@@ -157,11 +168,8 @@ document.addEventListener("DOMContentLoaded", function () {
                 document.getElementById("piso-imagen").classList.add("error-field");
 
             }
-
-
             return;
         }
-
   
         const formData = new FormData();
         formData.append("nombre", nombre);
@@ -180,14 +188,12 @@ document.addEventListener("DOMContentLoaded", function () {
             if (response.ok) {
                 const modalBackground = document.querySelector(".modal-space-background");
                 const modalCrear = document.querySelector(".modal-crear");
-
                 modalBackground.classList.remove("active");
                 modalCrear.classList.remove("active");
-
                 obtenerPisos(); 
+
             } else {
                 const errorData = await response.json();
-                console.error("Error al crear el piso:", errorData);
                 alert("Error al crear el piso. Verifica los datos.");
             }
         } catch (error) {

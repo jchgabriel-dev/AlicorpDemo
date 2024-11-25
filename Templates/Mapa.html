@@ -2,20 +2,57 @@
 {% load static %} 
 
 {% block content %}
+
+<div class="header-piso wrapper-piso">
+    <a class="modal-btn secondary" href="/">REGRESAR</a>
+
+</div>
+
 <div class="mapa-wrapper" >
-    
+
     <div class="info-piso">
         <h3>INFORMACION</h3>
-        <a class="modal-btn secondary">CREAR CAMARA</a>
+        
+        <a class="modal-btn secondary" style="margin: 1rem; background-color: #f34646;" href="{{CAMARA_URL}}">CREAR CAMARA</a>
 
+        <div class="table-informes">
+            <section>
+                <strong></strong>
+                <div>
+                    <a id="create-link" class="create-link disabled" > CREAR INFORME</a>
+                    <a id="updateCamara" class="create-link disabled" > ACTUALIZAR</a>
+                </div>
+                
+
+            </section>
+            
+            <table>
+                <thead>
+                    <tr>
+                        <th>Autor</th>
+                        <th>Nombre</th>
+                        <th>Opciones</th>
+                    </tr>
+                  
+                </thead>
+                <tbody id="tbody-rows">
+                    <tr>
+                        <td colspan="3">Ninguna camara fue seleccionada</td>
+                    </tr>
+                </tbody>
+            </table>
+     
+
+        </div> 
+       
     </div>
 
     <div >
         <h4>{{ piso.nombre }}</h4>
-        <div class="mapa-control-wrapper">
-            
-            <label>UBICACION</label>
+        <div class="mapa-control-wrapper">            
+            <label>CAMARAS</label>
             <select id="objectSelect">
+
                 <option value="">---------</option>
                 {% for obj in MARCADORES %}
                 <option value="{{ obj.id }}">{{ obj.nombre }}</option>
@@ -31,7 +68,7 @@
             <button class="save-btn" onclick="guardarUbicaciones()">GUARDAR</button>
         </div>
         
-        <div  id="mapa-image" style="height: 500px; width: 100%;"></div>
+        <div  id="mapa-image" ></div>
 
     </div>
 
@@ -43,134 +80,177 @@
 {% block custom_scripts %}
 <script src="{% static 'LIB/leaflet/leaflet.js' %}"></script>
 <script>
-
    
-const imageUrl = '{{ piso.imagen.url }}'; // URL de la imagen
-const imageWidth = {{ image_width }};     // Ancho real de la imagen
-const imageHeight = {{ image_height }};   // Altura real de la imagen
+// ESTABLECER IMAGEN
+const imageUrl = '{{ piso.imagen.url }}';
+const imageWidth = '{{ image_width }}';     
+const imageHeight = '{{ image_height }}';   
 
 const imageBounds = [[0, 0], [imageHeight, imageWidth]];
 
 const map = L.map('mapa-image', {
     crs: L.CRS.Simple,
-    maxZoom: 5,       // Permitir zoom detallado
-    minZoom: -4,      // Zoom inicial reducido para que se vea completa
-    zoomSnap: 0.5,    // Permitir niveles de zoom intermedios
+    maxZoom: 5,       
+    minZoom: -4,      
+    zoomSnap: 0.5,   
+    maxBounds: imageBounds,
+    
 }).setView([0, 0], 0);
 
 L.imageOverlay(imageUrl, imageBounds).addTo(map);
+map.fitBounds(imageBounds);    
 
-map.fitBounds(imageBounds);
 
+// ESTABLECER MARCADORES
+
+const marcadores = JSON.parse("{{ PUNTOS|escapejs }}");
+const markers = {}; 
+let addingMarker = false;
     
+marcadores.forEach(marcador => {
+    if (marcador.latitud && marcador.longitud) {
+        const leafletMarker = L.marker([marcador.latitud, marcador.longitud]).addTo(map)
+            .bindPopup(`<b>${marcador.nombre}</b>`)
+            .on('click', function () {
+                llamarFuncionConId(marcador.id);
+            });
 
-    const marcadores = JSON.parse('{{ PUNTOS|safe|escapejs }}');
-    const markers = {}; 
-    let addingMarker = false;
-
-    
-    // Cargar los marcadores existentes
-    marcadores.forEach(marcador => {
-        if (marcador.latitud && marcador.longitud) {
-            const leafletMarker = L.marker([marcador.latitud, marcador.longitud]).addTo(map)
-                .bindPopup(`<b>${marcador.nombre}</b>`)
-                .on('click', function () {
-                    llamarFuncionConId(marcador.id);
-                });
-
-            markers[marcador.id] = leafletMarker;
-        }
-    });
+        markers[marcador.id] = leafletMarker;
+    }
+});
   
-    // SELECCIONAR
-    document.getElementById('addMarkerBtn').addEventListener('click', function() {
-        const selectedObject = document.getElementById('objectSelect').value;
-        document.getElementById('alertMessage').textContent = '';  
-        
-        if (!selectedObject) {
-            document.getElementById('alertMessage').textContent = 'Por favor, seleccione una ubicacion';  
-            return;
-        }
-        
-        addingMarker = !addingMarker;  
-        if (addingMarker) {
-            this.textContent = 'Haz clic en el mapa para agregar el marcador';  
-        } else {
-            this.textContent = 'AGREGAR MARCADOR';  
-        }
-    });
 
-    // Cuando se cambia el select de objetos
-    const objectSelect = document.getElementById('objectSelect');
+// SELECCIONAR
+document.getElementById('addMarkerBtn').addEventListener('click', function() {
+    const selectedObject = document.getElementById('objectSelect').value;
+    document.getElementById('alertMessage').textContent = '';  
+    
+    if (!selectedObject) {
+        document.getElementById('alertMessage').textContent = 'Por favor, seleccione una camara';  
+        return;
+    }
+    
+    addingMarker = !addingMarker;  
+    if (addingMarker) {
+        this.textContent = 'Haz clic en el mapa para agregar el marcador';  
+    } else {
+        this.textContent = 'AGREGAR MARCADOR';  
+    }
+});
+
+    
+const objectSelect = document.getElementById('objectSelect');
     objectSelect.addEventListener('change', function() {
         addingMarker = false;
         addMarkerBtn.textContent = 'AGREGAR MARCADOR'; 
         document.getElementById('alertMessage').textContent = ''; 
-    });
+});
 
-    // CREAR MARCADORES (al hacer clic en el mapa)
-    map.on('click', function (e) {
-        if (addingMarker) {
-            const selectedObject = document.getElementById('objectSelect').value;
+// CREAR MARCADORES 
+map.on('click', function (e) {
+    if (addingMarker) {
+        const selectedObject = document.getElementById('objectSelect').value;
 
-            if (selectedObject) {
-                // Si el marcador ya existe, se elimina antes de agregar el nuevo
-                if (markers[selectedObject]) {
-                    map.removeLayer(markers[selectedObject]);
-                }
+        if (selectedObject) {
+            if (markers[selectedObject]) {
+                map.removeLayer(markers[selectedObject]);
+            }
 
-                const lat = e.latlng.lat;
-                const lon = e.latlng.lng;
-                const marker = L.marker([lat, lon]).addTo(map)
-                    .bindPopup(`<b>${document.getElementById('objectSelect').options[document.getElementById('objectSelect').selectedIndex].text}</b>`);
+            const lat = e.latlng.lat;
+            const lon = e.latlng.lng;
+            const marker = L.marker([lat, lon]).addTo(map)
+                .bindPopup(`<b>${document.getElementById('objectSelect').options[document.getElementById('objectSelect').selectedIndex].text}</b>`);
 
-                markers[selectedObject] = marker;
+            markers[selectedObject] = marker;
 
-                // Agregar el evento de clic al nuevo marcador
-                marker.on('click', function () {
-                    llamarFuncionConId(selectedObject);
+            marker.on('click', function () {
+                llamarFuncionConId(selectedObject);
+            });
+
+            addingMarker = false;
+            addMarkerBtn.textContent = 'AGREGAR MARCADOR';
+
+        }
+    }
+});
+
+// FUNCION PARA GUARDAR
+function guardarUbicaciones() {
+    const ubicaciones = Object.entries(markers).map(([id, marker]) => ({
+        id,
+        latitud: marker.getLatLng().lat,
+        longitud: marker.getLatLng().lng
+    }));
+
+
+    fetch('{% url "actualizar_camaras_bulk" %}', {
+        method: 'PUT',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}',
+        },
+        body: JSON.stringify(ubicaciones),
+    })
+        .then(response => response.json())
+        .then(data => {
+            alert('Ubicaciones guardadas con éxito');
+        })
+        .catch(error => {
+            console.error('Error al guardar las ubicaciones:', error);
+        });
+}
+
+
+function llamarFuncionConId(id) {
+    async function obtenerPisos() {
+        try {
+            const url = `/api/informes/${id}/`; 
+            const response = await fetch(url);
+
+            if (response.ok) {
+                const informes = await response.json();
+                
+                const tbody = document.getElementById('tbody-rows');
+                tbody.innerHTML = '';  
+
+                
+                const link = document.getElementById('create-link');
+                link.classList.remove('disabled');
+                link.href = `/informe_create/${id}`; 
+                
+                const updateCamara = document.getElementById('updateCamara');
+                updateCamara.classList.remove('disabled');
+                updateCamara.href = `/camara_update/${id}`; 
+
+                informes.forEach(informe => {
+                    const row = document.createElement('tr'); 
+                    row.innerHTML = `
+                        <td>${informe.autor}</td>  
+                        <td>${informe.nombre}</td>
+
+                        <td><a class="update-link" href="/informe_update/${informe.id}">Actualizar</a></td>
+                    `;
+                    tbody.appendChild(row); 
                 });
 
-                addingMarker = false;
-                addMarkerBtn.textContent = 'AGREGAR MARCADOR';
+                if (informes.length === 0) {
+                    const row = document.createElement('tr'); 
+                    row.innerHTML = `
+                        <td colspan="3" style="text-align: center; background-color: gray;">No hay informes</td>
+                    `;
+                    tbody.appendChild(row); 
+                }
 
-                console.log(`Guardando marcador para ID ${selectedObject}: (${lat}, ${lon})`);
+            } else {
+                console.error('Error al obtener los informes:', response.status);
             }
+        } catch (error) {
+            console.error('Error al hacer la solicitud:', error);
         }
-    });
-
-    // Función para guardar las ubicaciones
-    function guardarUbicaciones() {
-        const ubicaciones = Object.entries(markers).map(([id, marker]) => ({
-            id,
-            lat: marker.getLatLng().lat,
-            lon: marker.getLatLng().lng
-        }));
-
-        console.log("Enviando las siguientes ubicaciones al servidor:", ubicaciones);
-
-        fetch('', {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'X-CSRFToken': '{{ csrf_token }}',
-            },
-            body: JSON.stringify(ubicaciones),
-        })
-            .then(response => response.json())
-            .then(data => {
-                alert('Ubicaciones guardadas con éxito');
-            })
-            .catch(error => {
-                console.error('Error al guardar las ubicaciones:', error);
-            });
     }
 
+    obtenerPisos();
+}
 
-
-    function llamarFuncionConId(id) {
-        console.log('Se ha hecho clic en el marcador con ID:', id);
-    
-    }
 </script>
 {% endblock %}
